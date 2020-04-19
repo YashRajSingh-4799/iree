@@ -456,6 +456,7 @@ void ConvertToGPUPass::runOnOperation() {
   target.addIllegalOp<ReturnOp>();
   target.addIllegalOp<loop::ParallelOp>();
   target.addIllegalDialect<linalg::LinalgDialect>();
+  target.addLegalOp<linalg::ReshapeOp>();
 
   OwningRewritePatternList patterns;
   patterns
@@ -464,6 +465,7 @@ void ConvertToGPUPass::runOnOperation() {
   ExecuteLinalgOpSequentially<OP_NAME>, MapLinalgOpToWorkitems<OP_NAME>
 
               ADD_ALL_LINALG_PATTERNS(linalg::ConvOp),
+              ADD_ALL_LINALG_PATTERNS(linalg::CopyOp),
               ADD_ALL_LINALG_PATTERNS(linalg::FillOp),
               ADD_ALL_LINALG_PATTERNS(linalg::GenericOp),
               ADD_ALL_LINALG_PATTERNS(linalg::IndexedGenericOp),

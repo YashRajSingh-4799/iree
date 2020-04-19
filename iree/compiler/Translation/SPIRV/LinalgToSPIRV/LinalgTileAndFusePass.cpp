@@ -215,6 +215,7 @@ void LinalgTileAndFusePass::runOnFunction() {
                   TileLinalgOpPattern<linalg::IndexedGenericOp>,
                   TileLinalgOpPattern<linalg::MatmulOp>,
                   TileLinalgOpPattern<linalg::ConvOp>,
+                  TileLinalgOpPattern<linalg::CopyOp>,
                   TileAndFuseLinalgOpPattern<linalg::GenericOp>>(context,
                                                                  tileSizes);
   applyPatternsAndFoldGreedily(getOperation(), patterns);
@@ -222,8 +223,9 @@ void LinalgTileAndFusePass::runOnFunction() {
   // Check that there are single loop.parallel operation at the top most level
   // that will get mapped to thread blocks/workgroups.
   auto forLoops = block.getOps<loop::ParallelOp>();
-  if (numParallelLoops > 0 && !llvm::hasSingleElement(forLoops) &&
-      (*forLoops.begin()).getNumLoops() != numParallelLoops) {
+  if (numParallelLoops > 0 &&
+      (!llvm::hasSingleElement(forLoops) ||
+       (*forLoops.begin()).getNumLoops() != numParallelLoops)) {
     funcOp.emitError(
         "unable to generate the tiled loop structure to map to workgroups");
     return signalPassFailure();
